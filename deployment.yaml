@@ -1,0 +1,119 @@
+version: '3'
+
+services:
+
+  authenticationDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+    volumes:
+      - authenticationdbdata:/var/lib/mysql
+    networks:
+      - authenticationnetwork
+
+  authenticationDBMigration:
+    image: authenticationdbmigration
+    environment:
+      - DB_URL=authenticationDB
+    depends_on:
+        authenticationDB:
+          condition: service_healthy
+    networks:
+      - authenticationnetwork
+
+  authentication:
+    image: authentication
+    environment:
+      - DB_URL=authenticationDB
+    ports:
+      - 5003:5003
+    depends_on:
+      - authenticationDBMigration
+    networks:
+      - authenticationnetwork
+
+  electionDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+    volumes:
+      - electiondbdata:/var/lib/mysql
+    networks:
+      - electionnetwork
+
+  electionDBMigration:
+    image: electiondbmigration
+    environment:
+      - DB_URL=electionDB
+    depends_on:
+        authenticationDB:
+          condition: service_healthy
+    networks:
+      - electionnetwork
+
+  administrator:
+    image: administrator
+    environment:
+      - DB_URL=electionDB
+    ports:
+      - 5001:5001
+    depends_on:
+      - electionDBMigration
+    networks:
+      - electionnetwork
+
+  official:
+    image: official
+    environment:
+      - REDIS_HOST=redis
+    ports:
+      - 5002:5002
+    depends_on:
+      - redis
+    networks:
+      - redisnetwork
+
+  dameon:
+    image: dameon
+    environment:
+        - DB_URL=electionDB
+        - REDIS_HOST=redis
+    depends_on:
+      - electionDBMigration
+      - redis
+    networks:
+      - electionnetwork
+      - redisnetwork
+
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    networks:
+      - electionnetwork
+      - authenticationnetwork
+  redis:
+    image: redis
+    networks:
+      - redisnetwork
+
+volumes:
+  authenticationdbdata:
+  electiondbdata:
+
+networks:
+  authenticationnetwork:
+  electionnetwork:
+  redisnetwork:
+
+
+
+

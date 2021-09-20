@@ -1,0 +1,47 @@
+.\docker-machine.exe create manager
+.\docker-machine.exe ssh manager
+docker swarm init
+docker node ls
+
+na manageru:
+sudo su
+cd /var/lib/boot2docker
+vi profile
+ispod providera dodati:
+    --insecure-registry {ip}
+
+zatim napustiti managera i pokrenuti  .\docker-machine.exe restart manager
+
+docker service create --name registry --replicas 1 --publish 5000:5000 registry:2
+
+docker tag official 127.0.0.1:5000/official
+docker tag electiondbmigration 127.0.0.1:5000/electiondbmigration
+docker tag dameon 127.0.0.1:5000/dameon
+docker tag authenticationdbmigration 127.0.0.1:5000/authenticationdbmigration
+docker tag authentication 127.0.0.1:5000/authentication
+docker tag administrator 127.0.0.1:5000/administrator
+
+docker push 127.0.0.1:5000/official
+docker push 127.0.0.1:5000/electiondbmigration
+docker push 127.0.0.1:5000/dameon
+docker push 127.0.0.1:5000/authenticationdbmigration
+docker push 127.0.0.1:5000/authentication
+docker push 127.0.0.1:5000/administrator
+
+
+docker pull 127.0.0.1:5000/official
+docker pull 127.0.0.1:5000/electiondbmigration
+docker pull 127.0.0.1:5000/dameon
+docker pull 127.0.0.1:5000/authenticationdbmigration
+docker pull 127.0.0.1:5000/authentication
+docker pull 127.0.0.1:5000/administrator
+
+
+docker tag 127.0.0.1:5000/official official
+docker tag 127.0.0.1:5000/electiondbmigration electiondbmigration
+docker tag 127.0.0.1:5000/dameon dameon
+docker tag 127.0.0.1:5000/authenticationdbmigration authenticationdbmigration
+docker tag 127.0.0.1:5000/authentication authentication
+docker tag 127.0.0.1:5000/administrator administrator
+
+docker stack deploy -c .\stack.yaml moj_stek

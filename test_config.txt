@@ -1,0 +1,1 @@
+--type all --authentication-address http://127.0.0.1:5003 --jwt-secret TAJNIKLJUC --roles-field role --administrator-role administrator --user-role zvanicnik --administrator-address http://127.0.0.1:5001 --station-address http://127.0.0.1:5002 --with-authentication
